@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         DOCKERHUB_REPO = "sonsoyeon/mirrorlit"
-        DOCKERHUB_CREDENTIALS = "dockerhub"
+        DOCKERHUB_USERNAME = "sonsoyeon"   // Docker Hub ID
+        DOCKERHUB_CREDENTIALS = "dockerhub" // Jenkins Credentials ID
     }
 
     stages {
@@ -18,21 +19,23 @@ pipeline {
             steps {
                 script {
                     sh "docker build -t ${DOCKERHUB_REPO}:${BUILD_NUMBER} ."
+                    sh "docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest"
                 }
             }
         }
 
         stage('Push to DockerHub') {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        sh "docker push ${DOCKERHUB_REPO}:${BUILD_NUMBER}"
-                        sh "docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest"
-                        sh "docker push ${DOCKERHUB_REPO}:latest"
-                    }
+                withCredentials([string(credentialsId: "${DOCKERHUB_CREDENTIALS}", variable: 'DOCKERHUB_TOKEN')]) {
+                    sh '''
+                        echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+                        docker push ${DOCKERHUB_REPO}:${BUILD_NUMBER}
+                        docker push ${DOCKERHUB_REPO}:latest
+                    '''
                 }
             }
         }
+
     }
 
     post {
