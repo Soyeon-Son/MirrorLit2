@@ -1,35 +1,51 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    DOCKER_IMAGE = "sonsoyeon/mirrorlit"
-    DOCKERHUB_CREDENTIALS = "dockerhub"
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
+    tools {
+        nodejs 'NodeJs_18'
     }
 
-    stage('Build image') {
-      steps {
-        script {
-          app = docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+    environment {
+        DOCKERHUB_REPO = "sonsoyeon/mirrorlit"
+        DOCKERHUB_CREDENTIALS = "dockerhub"   // Jenkins Credentials ID
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
         }
-      }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh "docker build -t ${DOCKERHUB_REPO}:${BUILD_NUMBER} ."
+                }
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        sh "docker push ${DOCKERHUB_REPO}:${BUILD_NUMBER}"
+                        sh "docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest"
+                        sh "docker push ${DOCKERHUB_REPO}:latest"
+                    }
+                }
+            }
+        }
     }
 
-    stage('Push image') {
-      steps {
-        script {
-          docker.withRegistry('https://registry.hub.docker.com", DOCKERHUB_CREDENTIALS) {
-            app.push("${env.BUILD_NUMBER}")
-            app.push("latest")
-          }
-        }
-      }
+    post {
+        success { echo "CI 성공" }
+        failure { echo "CI 실패" }
     }
-  }
 }
