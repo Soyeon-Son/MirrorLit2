@@ -3,8 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_REPO = "sonsoyeon/mirrorlit"
-        DOCKERHUB_USERNAME = "sonsoyeon"   // Docker Hub ID
-        DOCKERHUB_CREDENTIALS = "dockerhub" // Jenkins Credentials ID
+        DOCKERHUB_CREDENTIALS = "dockerhub"
     }
 
     stages {
@@ -26,9 +25,9 @@ pipeline {
 
         stage('Push to DockerHub') {
             steps {
-                withCredentials([string(credentialsId: "${DOCKERHUB_CREDENTIALS}", variable: 'DOCKERHUB_TOKEN')]) {
+                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh '''
-                        echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+                        echo "$PASS" | docker login -u "$USER" --password-stdin
                         docker push ${DOCKERHUB_REPO}:${BUILD_NUMBER}
                         docker push ${DOCKERHUB_REPO}:latest
                     '''
