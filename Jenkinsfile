@@ -1,13 +1,9 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'NodeJs_18'
-    }
-
     environment {
         DOCKERHUB_REPO = "sonsoyeon/mirrorlit"
-        DOCKERHUB_CREDENTIALS = "dockerhub"   // Jenkins Credentials ID
+        DOCKERHUB_CREDENTIALS = "dockerhub"
     }
 
     stages {
