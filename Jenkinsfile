@@ -35,10 +35,22 @@ pipeline {
             }
         }
 
+        stage('Deploy to GKE') {
+            when {
+                branch 'develop'
+            }
+            steps {
+                sh '''
+                gcloud container clusters get-credentials mirrorlit-cluster --region asia-northeast3
+                kubectl set image deployment/mirrorlit-deploy mirrorlit=${DOCKERHUB_REPO}:${BUILD_NUMBER}
+                '''
+            }
+        }
     }
 
     post {
-        success { echo "CI 성공" }
-        failure { echo "CI 실패" }
+        success { echo "CI/CD 성공" }
+        failure { echo "CI/CD 실패" }
     }
 }
+
