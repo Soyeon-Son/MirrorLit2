@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'google/cloud-sdk:latest'
+            args '-u root'
+        }
+    }
 
     environment {
         DOCKERHUB_REPO = "sonsoyeon/mirrorlit"
@@ -16,10 +21,10 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t ${DOCKERHUB_REPO}:${BUILD_NUMBER} ."
-                    sh "docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest"
-                }
+                sh """
+                    docker build -t ${DOCKERHUB_REPO}:${BUILD_NUMBER} .
+                    docker tag ${DOCKERHUB_REPO}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:latest
+                """
             }
         }
 
@@ -36,18 +41,19 @@ pipeline {
         }
 
         stage('Deploy to GKE') {
-            
+            when { branch 'develop' }
             steps {
-                sh '''
-                gcloud container clusters get-credentials mirrorlit-cluster --region asia-northeast3
-                kubectl set image deployment/mirrorlit-deploy mirrorlit=${DOCKERHUB_REPO}:${BUILD_NUMBER}
-                '''
+                sh """
+                    gcloud container clusters get-credentials mirrorlit-cluster --region asia-northeast3 --project open-472114
+                    sed -i 's|mirrorlit:latest|mirrorlit:${BUILD_NUMBER}|g' deployment.yaml
+                    kubectl apply -f deployment.yaml
+                """
             }
         }
     }
 
     post {
-        success { echo "CI/CD 성공" }
+        success { echo "CI/CD 성공!" }
         failure { echo "CI/CD 실패" }
     }
 }
