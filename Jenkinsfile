@@ -9,6 +9,7 @@ pipeline {
     environment {
         DOCKERHUB_REPO = "sonsoyeon/mirrorlit"
         DOCKERHUB_CREDENTIALS = "dockerhub"
+        PATH = "/usr/bin:/usr/lib/google-cloud-sdk/bin:$PATH"
     }
 
     stages {
