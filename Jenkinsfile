@@ -36,9 +36,7 @@ pipeline {
         }
 
         stage('Deploy to GKE') {
-            when {
-                branch 'develop'
-            }
+            
             steps {
                 sh '''
                 gcloud container clusters get-credentials mirrorlit-cluster --region asia-northeast3
