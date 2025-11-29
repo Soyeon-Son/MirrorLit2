@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mirrorlit-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mirrorlit
+  template:
+    metadata:
+      labels:
+        app: mirrorlit
+    spec:
+      containers:
+      - name: mirrorlit
+        image: sonsoyeon/mirrorlit:latest   
+        env:
+        - name: DB_HOST
+          value: "34.47.92.25"       
+        - name: DB_USER
+          value: "myuser"
+        - name: DB_PASSWORD          
+          value: "mypassword"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: "mirrorlit_db"
+
+        ports:
+        - containerPort: 3000
+
