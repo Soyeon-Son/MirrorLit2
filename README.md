@@ -59,3 +59,4 @@
  - '비우기'로 모든 알림 삭제 가능
 // trigger CI/CD Sun Nov 30 01:02:08 KST 2025
 test webhook
+Auto deployment test at Sun Nov 30 16:45:10 KST 2025
